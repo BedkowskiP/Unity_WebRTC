@@ -1,0 +1,35 @@
+{
+  "name": "com.unity.webrtc",
+  "displayName": "WebRTC",
+  "version": "3.0.0-pre.3",
+  "unity": "2020.3",
+  "description": "The WebRTC package provides browsers and mobile applications with Real-Time Communications (RTC) capabilities.",
+  "keywords": [
+    "webrtc",
+    "web"
+  ],
+  "dependencies": {
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.editorcoroutines": "1.0.0",
+    "com.unity.modules.audio": "1.0.0"
+  },
+  "samples": [
+    {
+      "displayName": "Example",
+      "description": "WebRTC sample",
+      "path": "Samples~"
+    }
+  ],
+  "_upm": {
+    "changelog": "### Fixed\n\n- Fix the crash when launching Unity Editor on a command line with `-nographics` option."
+  },
+  "upmCi": {
+    "footprint": "88cf87359f1d9b4d76de23ba4789514ae3f5041c"
+  },
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.webrtc@3.0/manual/index.html",
+  "repository": {
+    "url": "https://github.com/Unity-Technologies/com.unity.webrtc.git",
+    "type": "git",
+    "revision": "a6eb27b7a3e3581b37e2825d63a10392225f3a74"
+  }
+}
