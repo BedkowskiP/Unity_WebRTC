@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{16C1B3DD-B294-AC55-0F0C-3936D9D18D20}</ProjectGuid>
+    <ProjectGuid>{699BFBDD-069E-A744-7432-5E3032D3359B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -647,55 +647,55 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Unity.VSCode.Editor.csproj">
-      <Project>{4E62E49E-E5B1-53FC-11FC-4F27ED120DB3}</Project>
+      <Project>{3912B8FA-9208-0E56-FEFD-ECE44B337C7F}</Project>
       <Name>Unity.VSCode.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.Editor.csproj">
-      <Project>{94D226C1-4AE1-5149-7985-08F5A3F9FF44}</Project>
+      <Project>{7E770131-C5EB-4EB5-469B-A3E50DC78601}</Project>
       <Name>Unity.TextMeshPro.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.VisualStudio.Editor.csproj">
-      <Project>{807CF036-83A1-013D-3FF3-38DCDFAE96FC}</Project>
+      <Project>{793048FF-3B27-508B-5536-4695C76F4FEA}</Project>
       <Name>Unity.VisualStudio.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.WebRTC.csproj">
-      <Project>{DFA51B95-5415-14F3-6D21-BD24A4FCCC4E}</Project>
+      <Project>{70380A15-0E41-1CF7-6DA3-49B67F103A92}</Project>
       <Name>Unity.WebRTC</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Timeline.Editor.csproj">
-      <Project>{3609C9DB-20A1-65DB-DF3A-C30F2EC79BF5}</Project>
+      <Project>{7CFAFDA3-F3E5-8355-E4BA-233FD061406D}</Project>
       <Name>Unity.Timeline.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Timeline.csproj">
-      <Project>{A144D2CB-BA88-1059-0953-595CD8C44687}</Project>
+      <Project>{CAAA96CA-BDF5-E8FD-8F3B-58BD678481EF}</Project>
       <Name>Unity.Timeline</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.TextMeshPro.csproj">
-      <Project>{D8E3A813-27D3-312A-3FE9-6C0E4A48C5CD}</Project>
+      <Project>{F5CE9C93-C5E2-DE83-805C-5222F41127B2}</Project>
       <Name>Unity.TextMeshPro</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEditor.UI.csproj">
-      <Project>{684088AD-5A03-50AD-9A8C-0F3B6487FFDE}</Project>
+      <Project>{75CF1974-0A96-C83E-CA0B-173148F72505}</Project>
       <Name>UnityEditor.UI</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.PlasticSCM.Editor.csproj">
-      <Project>{3A53FD6C-D5E7-92BC-C8B4-C0300D274235}</Project>
+      <Project>{E613F5ED-A32B-338D-B6B5-2055B93DA579}</Project>
       <Name>Unity.PlasticSCM.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.Rider.Editor.csproj">
-      <Project>{FF6CFA70-5C0A-D81F-28F4-09A412BB9715}</Project>
+      <Project>{92055F21-76AC-16C2-DACF-EBE35DD05EF0}</Project>
       <Name>Unity.Rider.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.WebRTC.Editor.csproj">
-      <Project>{02A7E537-9972-1962-DBB7-069BFC260C76}</Project>
+      <Project>{2001963E-09A8-8958-29A2-968DABB83D07}</Project>
       <Name>Unity.WebRTC.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.UI.csproj">
-      <Project>{3C778D5D-A90B-C1EC-BEF3-793A81E6D189}</Project>
+      <Project>{FB9E1DBE-023A-04F7-E3DB-93B8C5F221E9}</Project>
       <Name>UnityEngine.UI</Name>
     </ProjectReference>
     <ProjectReference Include="Unity.EditorCoroutines.Editor.csproj">
-      <Project>{49E6F935-EE01-2990-E1BF-299FEBAF0774}</Project>
+      <Project>{77C3C938-17DE-A7AC-DEA8-C04715B123CC}</Project>
       <Name>Unity.EditorCoroutines.Editor</Name>
     </ProjectReference>
   </ItemGroup>

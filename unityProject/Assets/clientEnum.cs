@@ -10,6 +10,7 @@ using UnityEditor.VersionControl;
 using Task = System.Threading.Tasks.Task;
 using System.Security.Cryptography;
 
+[RequireComponent(typeof(AudioSource))]
 public class clientEnum : MonoBehaviour
 {
     private List<IEnumerator> threadPumpList = new List<IEnumerator>();
@@ -27,14 +28,15 @@ public class clientEnum : MonoBehaviour
     // ---
     private List<RTCRtpSender> pc1Senders;
 
-    private DelegateOnIceConnectionChange pc1OnIceConnectionChange;
-    private DelegateOnIceCandidate OnIceCandidate;
-    private DelegateOnNegotiationNeeded pc1OnNegotiationNeeded;
-
-
     // ---
 
     private RTCPeerConnection _transport;
+    private MediaStream _sendStream;
+    private MediaStream _receiveStream;
+
+    [SerializeField]
+    private AudioSource _audioSource;
+    private AudioStreamTrack track;
 
     public class payload_consume
     {
@@ -377,23 +379,7 @@ public class clientEnum : MonoBehaviour
 
         if (transport != null)
         {
-            //Debug.Log("ConsumeOnce: Tranport not null.");
-            //payload_consume payload = null;
-            //string temp = null;
-
-            //try
-            //{
-            //    payload = new payload_consume("consume", peer.id, peer.consumerId, "offer", transport.LocalDescription.sdp);
-            //    temp = JsonUtility.ToJson(transport.LocalDescription.sdp);
-            //    Debug.Log("ConsumeOnce: " + temp);
-            //}
-            //catch (Exception e)
-            //{
-            //    Debug.Log("ConsumeOnce: Error: " + e);
-            //}
-
-            //Debug.Log(temp);
-            string JSON = "{type:\'consume\', id:\'" + peer.id + "\', consumerId:\'" + peer.consumerId + "\', sdp:{type:\'offer\',sdp:\'" + transport.LocalDescription.sdp + "\'}}";
+            string JSON = "{\"type\":\"consume\", \"id\":\"" + peer.id + "\", \"consumerId\":\"" + peer.consumerId + "\", \"sdp\":\"{\"type\":\"offer\",\"sdp\":\"" + transport.LocalDescription.sdp + "\"}\"}";
             Debug.Log("ConsumeOnce: Sending message: " + JSON);
             ws.Send(JSON);
         } else {
@@ -412,11 +398,12 @@ public class clientEnum : MonoBehaviour
         //Debug.Log("CreateConsumerTransport: " + clients[peer.id].consumerId);
         consumers.Add(consumerID, consumerTransport);
 
-        //consumers[consumerID].AddTransceiver();
+        consumers[consumerID].AddTransceiver(track);
 
         yield return StartCoroutine(HandleTransportNegotiation(consumers[consumerID]));
 
         consumers[consumerID].OnIceCandidate += consumerTransport => HandleConsumerIceCandidate(consumerTransport, peer.id, consumerID);
+        consumers[consumerID].OnTrack += (RTCTrackEvent e) => handleRemoteTrack(e, peer.id);
 
         yield return null;
         _transport = consumerTransport;
@@ -433,13 +420,23 @@ public class clientEnum : MonoBehaviour
 
     }
 
+    public void handleRemoteTrack(RTCTrackEvent e, string peerId)
+	{
+        if (e.Track.Kind == TrackKind.Audio)
+        {
+            // Add track to MediaStream for receiver.
+            // This process triggers `OnAddTrack` event of `MediaStream`.
+            _receiveStream.AddTrack(e.Track);
+        }
+    }
+
     public IEnumerator OnTransportOfferCreateSuccess(RTCSessionDescription offer, RTCPeerConnection peer)
     {
         Debug.Log("OnTransportOfferCreateSuccess: Setting consumer description...");
         //Debug.Log("OnTransportOfferCreateSuccess: Offer: " + offer.sdp.ToString());
         var desc = peer.SetLocalDescription(ref offer);
         yield return null;
-        Debug.Log("OnTransportOfferCreateSuccess: Local description set: " + peer.LocalDescription.sdp.ToString());
+        Debug.Log("OnTransportOfferCreateSuccess: Consumer description set: " + peer.LocalDescription.sdp.ToString());
         yield return desc;
     }
 
@@ -447,7 +444,11 @@ public class clientEnum : MonoBehaviour
     {
         Debug.Log("Connect: Starting P2P connection.");
         yield return StartCoroutine(CreatePeer(localPeer));
-        StartCoroutine(Subscribe());
+        foreach(var t in _sendStream.GetTracks())
+		{
+            localPeer.AddTrack(track, _sendStream);
+		}
+        yield return StartCoroutine(Subscribe());
     }
 
     public IEnumerator Subscribe()
@@ -477,24 +478,25 @@ public class clientEnum : MonoBehaviour
 
     public IEnumerator HandleNegotiation(RTCPeerConnection peer)
     {
-        Debug.Log("HandleNegotiation: Creating offer...");
+        Debug.Log("HandleTransportNegotiation: Creating offer...");
         var offer = peer.CreateOffer();
-        yield return offer;
-        if (offer != null) Debug.Log("HandleNegotiation: Offer created!");
-        OnOfferCreateSuccess(offer.Desc, peer);
         yield return null;
+        Debug.Log("HandleTransportNegotiation: Offer created: " + offer.Desc.sdp.ToString());
+        yield return StartCoroutine(OnOfferCreateSuccess(offer.Desc, peer));
+
     }
 
     public IEnumerator OnOfferCreateSuccess(RTCSessionDescription offer, RTCPeerConnection peer)
     {
-        Debug.Log("onOfferCreateSuccess: Setting local description...");
+        Debug.Log("OnTransportOfferCreateSuccess: Setting local description...");
+        //Debug.Log("OnTransportOfferCreateSuccess: Offer: " + offer.sdp.ToString());
         var desc = peer.SetLocalDescription(ref offer);
-        yield return desc;
-        Debug.Log("OnOfferCreateSuccess: Consumer description has been set.");
-        string JSON = "{\"type\":\"connect\",\"sdp\":\"" + offer + "\",\"uqid\":\"" + localUUID + "\",\"username\":\"" + username + "\"}";
+        yield return null;
+        Debug.Log("OnTransportOfferCreateSuccess: Local description set: " + peer.LocalDescription.sdp.ToString());
+        string JSON = "{\"type\":\"connect\",\"sdp\":\"{\"type\":\"offer\",\"sdp\":\"" + peer.LocalDescription.sdp + "\"}\",\"uqid\":\"" + localUUID + "\",\"username\":\"" + username + "\"}";
         Debug.Log("HandleIceCandidate: Sending message: " + JSON);
         ws.Send(JSON);
-        yield return null;
+        yield return desc;
     }
 
     public void HandleIceCandidate(RTCIceCandidate candidate)
@@ -516,6 +518,32 @@ public class clientEnum : MonoBehaviour
             ws.Send(JSON);
         }
     }
+
+	private void Awake()
+	{
+        _audioSource = this.GetComponent<AudioSource>();
+        track = new AudioStreamTrack(_audioSource);
+        _sendStream = new MediaStream();
+        _receiveStream = new MediaStream();
+
+        _receiveStream.OnAddTrack = e =>
+        {
+            if (e.Track is AudioStreamTrack track)
+            {
+                // `AudioSource.SetTrack` is a extension method which is available 
+                // when using `Unity.WebRTC` namespace.
+                _audioSource.SetTrack(track);
+
+                // Please do not forget to turn on the `loop` flag.
+                _audioSource.loop = true;
+                _audioSource.Play();
+            }
+            else if (e.Track is VideoStreamTrack vid_track)
+            {
+                // This track is for video.
+            }
+        };
+	}
 
 	void Start()
     {

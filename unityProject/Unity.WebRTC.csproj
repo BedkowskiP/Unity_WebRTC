@@ -9,7 +9,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{DFA51B95-5415-14F3-6D21-BD24A4FCCC4E}</ProjectGuid>
+    <ProjectGuid>{70380A15-0E41-1CF7-6DA3-49B67F103A92}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Unity.WebRTC</AssemblyName>
@@ -704,11 +704,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="UnityEditor.UI.csproj">
-      <Project>{684088AD-5A03-50AD-9A8C-0F3B6487FFDE}</Project>
+      <Project>{75CF1974-0A96-C83E-CA0B-173148F72505}</Project>
       <Name>UnityEditor.UI</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.UI.csproj">
-      <Project>{3C778D5D-A90B-C1EC-BEF3-793A81E6D189}</Project>
+      <Project>{FB9E1DBE-023A-04F7-E3DB-93B8C5F221E9}</Project>
       <Name>UnityEngine.UI</Name>
     </ProjectReference>
   </ItemGroup>
