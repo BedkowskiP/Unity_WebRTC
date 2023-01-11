@@ -177,11 +177,9 @@ wss.on('connection', (ws) => {
             }
 
         } catch (e) {
-            message = msg.data
-            console.log(msg.data)
+            //message = msg.data
+            //console.log(msg.data)
         }
-        message = msg.data
-        console.log(msg.data)
     }
 
 })
