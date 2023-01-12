@@ -17,17 +17,10 @@ public class clientEnum : MonoBehaviour
     [SerializeField] private string serverURL = "ws://localhost:6969";
     private string username = null;
     private string localUUID = null;
-    private RTCPeerConnection localPeer = null;
-    private MediaStream localStream = null;
-    private MediaStream remoteStream = null;
+    private RTCPeerConnection localPeer;
 
     private IDictionary<string, clonePeer> clients = new Dictionary<string, clonePeer>();
     private IDictionary<string, RTCPeerConnection> consumers = new Dictionary<string, RTCPeerConnection>();
-
-    // ---
-    private List<RTCRtpSender> pc1Senders;
-
-    // ---
 
     private RTCPeerConnection _transport;
     private MediaStream _sendStream;
@@ -42,27 +35,58 @@ public class clientEnum : MonoBehaviour
     private string _defaulMicrophone;
     private AudioClip m_clipInput;
 
+    #region payload_classes
+    [Serializable]
     public class payload_consume
     {
         public string type = "consume";
         public string id;
         public string consumerId;
-        public sdp_class sdp = new sdp_class();
-
-        public payload_consume(string type, string id, string consumerId, string sdp_type, string sdp)
-        {
-            this.type = type;
-            this.id = id;
-            this.consumerId = consumerId;
-            this.sdp.type = sdp_type;
-            this.sdp.sdp = sdp;
-        }
-
-        public string toString()
-        {
-            return "{\"type\":\"consume\",\"id\":\"" + this.id + "\",\"consumerId\":\"" + this.consumerId + "\",\"sdp\":\"" + sdp + "\"}";
-        }
+        public sdp_c sdp;
     }
+
+    [Serializable]
+    public class payload_ice_consumer
+	{
+        public string type = "consumer_ice";
+        public string uqid;
+        public string consumerId;
+	}
+
+    [Serializable]
+    public class payload_ice
+    {
+        public string type = "ice";
+        public ice_c ice;
+        public string uqid;
+    }
+
+    [Serializable]
+    public class payload_connect
+	{
+        public string type = "connect";
+        public sdp_c sdp;
+        public string uqid;
+        public string username;
+    }
+
+    [Serializable]
+    public class sdp_c
+    {
+        public string type = "offer";
+        public string sdp;
+    }
+
+    [Serializable]
+    public class ice_c
+	{
+        public string candidate;
+        public string sdpMid;
+        public string sdpMLineIndex;
+        public string usernameFragment;
+	}
+    #endregion
+
 
     #region JSON_Classes
     public class J_Witaj
@@ -184,20 +208,6 @@ public class clientEnum : MonoBehaviour
         }
     }
 
-    public class RTCPeerConnection_1
-    {
-        public string id { get; set; }
-        public clonePeer peer { get; set; }
-        public RTCPeerConnection peerConnection { get; set; }
-
-        public RTCPeerConnection_1(string localUUID, clonePeer peer, RTCPeerConnection consumerTransport)
-        {
-            this.id = localUUID;
-            this.peer = peer;
-            this.peerConnection = consumerTransport;
-        }
-    }
-
     private string UuidUnity()
     {
         const string chars = "abcdefghijklmnopqrstuvwxyz1234567890";
@@ -219,7 +229,6 @@ public class clientEnum : MonoBehaviour
         if (message.Contains("\"type\":\"witaj\"") == true)
             {
                 Debug.Log("HandleMessage: Wiadomosc zawierala, WITAJ!");
-
                 J_Witaj witaj = JsonConvert.DeserializeObject<J_Witaj>(message);
                 //Debug.Log("HandleMessage: Recevied message" + message);
                 Debug.Log("HandleMessage: Your ID: " + witaj.id);
@@ -267,18 +276,6 @@ public class clientEnum : MonoBehaviour
                 //Debug.Log("HandleMessage: Recevied message " + message);
                 yield return StartCoroutine(HandleConsume(consume_msg));
             }
-            
-        //try
-        //{
-        //    if (message.Contains("\"type\":\"test\"") == true)
-        //    {
-        //        Debug.Log("HandleMessage: Wiadomosc zawierala, test!");
-        //    }
-        //}
-        //catch (Exception e)
-        //{
-        //    Debug.Log(e);
-        //}
         yield break;
     }
 
@@ -362,6 +359,7 @@ public class clientEnum : MonoBehaviour
         try
         {
             consumers[consume.consumerId].SetRemoteDescription(ref desc);
+            Debug.Log("HandleConsume: Remote description set.");
         }
         catch (Exception e)
         {
@@ -381,7 +379,13 @@ public class clientEnum : MonoBehaviour
 
         if (transport != null)
         {
-            string JSON = "{\"type\":\"consume\", \"id\":\"" + peer.id + "\", \"consumerId\":\"" + peer.consumerId + "\", \"sdp\":\"{\"type\":\"offer\",\"sdp\":\"" + transport.LocalDescription.sdp + "\"}\"}";
+            sdp_c sdp = new sdp_c();
+            sdp.sdp = transport.LocalDescription.sdp;
+            payload_consume payload = new payload_consume();
+            payload.id = peer.id;
+            payload.consumerId = peer.consumerId;
+            payload.sdp = sdp;
+            string JSON = JsonUtility.ToJson(payload);
             Debug.Log("ConsumeOnce: Sending message: " + JSON);
             ws.Send(JSON);
         } else {
@@ -403,12 +407,19 @@ public class clientEnum : MonoBehaviour
         consumers[consumerID].AddTransceiver(TrackKind.Audio).Direction = RTCRtpTransceiverDirection.RecvOnly;
 
         yield return StartCoroutine(HandleTransportNegotiation(consumers[consumerID]));
+        //while (_transport == null) yield return null;
 
         consumers[consumerID].OnIceCandidate += consumerTransport => HandleConsumerIceCandidate(consumerTransport, consumerID);
-        consumers[consumerID].OnTrack = (RTCTrackEvent e) => handleRemoteTrack(e);
+        consumers[consumerID].OnTrack += (RTCTrackEvent e) => handleRemoteTrack(e);
 
-        yield return null;
         _transport = consumerTransport;
+    }
+    public void handleRemoteTrack(RTCTrackEvent e)
+    {
+        if (e.Track.Kind == TrackKind.Audio)
+        {
+            _receiveStream.AddTrack(e.Track);
+        }
     }
 
     public IEnumerator HandleTransportNegotiation(RTCPeerConnection peer)
@@ -420,14 +431,6 @@ public class clientEnum : MonoBehaviour
         Debug.Log("HandleTransportNegotiation: Offer created: " + offer.Desc.sdp.ToString());
         yield return StartCoroutine(OnTransportOfferCreateSuccess(offer.Desc, peer));
 
-    }
-
-    public void handleRemoteTrack(RTCTrackEvent e)
-	{
-        if (e.Track.Kind == TrackKind.Audio)
-        {
-            _receiveStream.AddTrack(e.Track);
-        }
     }
 
     public IEnumerator OnTransportOfferCreateSuccess(RTCSessionDescription offer, RTCPeerConnection peer)
@@ -443,11 +446,8 @@ public class clientEnum : MonoBehaviour
     public IEnumerator Connect()
     {
         Debug.Log("Connect: Starting P2P connection.");
-        yield return StartCoroutine(CreatePeer(localPeer));
-        foreach(var t in _sendStream.GetTracks())
-		{
-            localPeer.AddTrack(track, _sendStream);
-		}
+        yield return StartCoroutine(CreatePeer());
+        localPeer.AddTrack(track, _sendStream);
         yield return StartCoroutine(Subscribe());
     }
 
@@ -464,17 +464,19 @@ public class clientEnum : MonoBehaviour
         string getPeers = "{\"type\":\"getPeers\",\"uqid\":\"" + localUUID + "\"}";
         Debug.Log("ConsumeAll: Sending message: " + getPeers);
         ws.Send(getPeers);
-        yield break;
+        yield return StartCoroutine(HandleNegotiation(localPeer));
     }
 
-    public IEnumerator CreatePeer(RTCPeerConnection localPeer)
+    public IEnumerator CreatePeer()
     {
         Debug.Log("CreatePeer: Creating peer...");
         var config = new RTCConfiguration();
-		config.iceServers = new[]{ new RTCIceServer { urls = new[] { "stun:stun.l.google.com:19302" } }, new RTCIceServer { urls = new[] { "stun:stun.stunprotocol.org:3478" } } };
+		config.iceServers = new[]{ 
+            new RTCIceServer { urls = new[] { "stun:stun.l.google.com:19302" } }, 
+            new RTCIceServer { urls = new[] { "stun:stun.stunprotocol.org:3478" } } 
+        };
         localPeer = new RTCPeerConnection(ref config);
         localPeer.OnIceCandidate = (e) => HandleIceCandidate(e);
-        //localPeer.OnTrack = (RTCTrackEvent e) => handleRemoteTrack(e);
         localPeer.OnNegotiationNeeded += () => HandleNegotiation(localPeer);
         yield return localPeer;
     }
@@ -493,19 +495,34 @@ public class clientEnum : MonoBehaviour
     {
         Debug.Log("OnOfferCreateSuccess: Setting local description...");
         var desc = peer.SetLocalDescription(ref offer);
-        yield return null;
+        yield return desc;
         Debug.Log("OnOfferCreateSuccess: Local description set: " + peer.LocalDescription.sdp.ToString());
-        string JSON = "{\"type\":\"connect\",\"sdp\":\"{\"type\":\"offer\",\"sdp\":\"" + peer.LocalDescription.sdp + "\"}\",\"uqid\":\"" + localUUID + "\",\"username\":\"" + username + "\"}";
+        sdp_c sdp = new sdp_c();
+        sdp.sdp = peer.LocalDescription.sdp.ToString();
+        payload_connect payload = new payload_connect();
+        payload.sdp = sdp;
+        payload.uqid = localUUID;
+        payload.username = username;
+        string JSON = JsonUtility.ToJson(payload);
         Debug.Log("OnOfferCreateSuccess: Sending message: " + JSON);
         ws.Send(JSON);
-        yield return desc;
     }
 
     public void HandleIceCandidate(RTCIceCandidate candidate)
     {
         if (candidate != null && candidate.Candidate != null && candidate.Candidate.Length > 0)
         {
-            string JSON = "{\"type\":\"ice\",\"ice\":\"" + candidate + "\",\"uqid\":\"" + localUUID + "\"}";
+            ice_c ice = new ice_c();
+            ice.candidate = candidate.Candidate;
+            ice.sdpMid = candidate.SdpMid;
+            ice.sdpMLineIndex = candidate.SdpMLineIndex.ToString();
+            ice.usernameFragment = candidate.UserNameFragment;
+
+            payload_ice payload = new payload_ice();
+            payload.ice = ice;
+            payload.uqid = localUUID;
+
+            string JSON = JsonUtility.ToJson(payload);
             Debug.Log("HandleIceCandidate: Sending message: Sending message: " + JSON);
             ws.Send(JSON);
         }
@@ -515,7 +532,10 @@ public class clientEnum : MonoBehaviour
     {
         if (candidate != null && candidate.Candidate != null && candidate.Candidate.Length > 0)
         {
-            string JSON = "{\"consumer_ice\":\"ice\",\"ice\":\"" + candidate + "\",\"uqid\":\"" + localUUID + "\",\"consumerId\":\"" + consumentID + "\"}";
+            payload_ice_consumer ice = new payload_ice_consumer();
+            ice.uqid = localUUID;
+            ice.consumerId = consumentID;
+            string JSON = JsonUtility.ToJson(ice);
             Debug.Log("HandleConsumerIceCandidate: Sending message: " + JSON);
             ws.Send(JSON);
         }
@@ -557,8 +577,7 @@ public class clientEnum : MonoBehaviour
     private void Init()
     {
         Debug.Log("Init: Starting...");
-        pc1Senders = new List<RTCRtpSender>();
-
+        username = UuidUnity();
         ws = new WebSocket(serverURL);
 
         ws.OnOpen += (sender, e) =>

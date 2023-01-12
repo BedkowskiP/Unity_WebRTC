@@ -1,4 +1,5 @@
 
+
 let localStream = null;
 let my_vid = null;
 let localPeer = null;
@@ -20,102 +21,104 @@ const configuration = {
 
 
 window.onload = async () => {
-    await init();
+    document.getElementById("disconnect_btn").disabled = true;
 };
 
 
-const init = async () => {
+const init = async () =>{
+
+    console.log('%cinit wystartowało ','color:green')
+    username = uuidv4short();
+    console.log("UserName : "+username)
 
     connection = new WebSocket(ws_connection_ip);
-    connection.onopen = async () => {
+    connection.onopen = async () =>{
         console.log("Otwarto połączenie")
+        
+        let payload = {
+            type: 'user_connected_via_ws',
+            username: username,
+        }
+        connection.send(JSON.stringify(payload))
+
         isOpen = true;
     }
     connection.onmessage = (msg) => {
-        // console.log(msg.type)
-        // console.log(msg)
-        console.log("Otrzymano wiadomość : ")
         handleMessage(msg);
     }
-    connection.onclose = () => {
+    connection.onclose = () =>{
         console.log("Zamknięto połączenie")
         connection = null;
     }
 
-    username = uuidv4short();
-    console.log("UserName : " + username)
-
+    
+    
 }
 
-const connect = async () => {
-    //let RoomID = document.getElementById("roomID").value; 
-    //if(RoomID == ""){
-    //    alert('Podaj ID pokoju...')
-    //    return
-    //}
-    //console.log("ROOM_ID: "+RoomID)
-    let stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true })
-    //handleRemoteTrack(stream,username);
-    localStream = stream
+const disconnect = async () => {
+    document.location.reload()
+}
 
-    //my_vid = document.getElementById("my_video");
-    //my_vid.srcObject = localStream
+const connect = async () =>{
+    document.getElementById("connect_btn").disabled = true;
+    document.getElementById("disconnect_btn").disabled = false;
+    console.log('%cRozpoczynam procedure "connect"','color:green')
+    init();
+
+    let stream = await navigator.mediaDevices.getUserMedia({video:false,audio:true})
+
+    localStream = stream
 
     localPeer = await createPeer();
     localStream.getTracks().forEach(track => localPeer.addTrack(track, localStream));
-    await subscribe();
+    subscribe();
 }
 
-const handleRemoteTrack = async (stream, peerid) => {
-    //console.log("handleRemoteTrack not implemented")
+const handleRemoteTrack = async (stream, peerid) =>{
     let r_vids = document.getElementById("remote_vids");
-
-    // let video = document.createElement('video');
-    // video.id= `zdalny_${peerid}`
-    // video.srcObject = stream;
-    // video.autoplay = true;
-    // video.muted = true;
-
     let audio = document.createElement('audio');
-    audio.id = `zdalny_${peerid}`
+    audio.id=`zdalny_${peerid}`
     audio.srcObject = stream;
     audio.autoplay = true
-
-    //r_vids.append(video)
-
+    
 }
 
 const handleMessage = ({ data }) => {
-    const message = JSON.parse(data);
-    console.log(message)
-    console.log(message.type)
-    switch (message.type) {
-        case 'witaj':
-            localUUID = message.id;
-            console.log(localUUID)
-            break;
-        case 'answer':
-            handleAnswer(message);
-            break;
-        case 'peers':
-            handlePeers(message);
-            break;
-        case 'consume':
-            handleConsume(message)
-            break
-        case 'newProducer':
-            handleNewProducer(message);
-            break;
-        case 'user_left':
-            removeUser(message);
-            break;
-        case 'test':
-            handleTest(message)
-            break;
+    try{
+        const message = JSON.parse(data);
+        console.log("Otrzymano wiadomość JSON od servera typu: \""+message.type+ "\" o zawartości: "+message);
+        console.log(message)
+        switch (message.type) {
+            case 'witaj':
+                localUUID = message.id;
+                console.log("localUUID zostało ustawione na:" + localUUID)
+                break;
+            case 'answer':
+                handleAnswer(message);
+                break;
+            case 'peers':
+                handlePeers(message);
+                break;
+            case 'consume':
+                handleConsume(message)
+                break
+            case 'newProducer':
+                handleNewProducer(message);
+                break;
+            case 'user_left':
+                removeUser(message);
+                break;
+            case 'test':
+                handleTest(message)
+                break;
+        }
+    }catch{
+        console.log(message)
     }
+    
 }
 
-const handleAnswer = ({ sdp }) => {
+const handleAnswer = ({sdp}) =>{
     console.log("otrzymano odpoweidź")
     const desc = new RTCSessionDescription(sdp);
     localPeer.setRemoteDescription(desc).catch(e => console.log(e))
@@ -137,28 +140,26 @@ const uuidv4short = () => {
 }
 
 
-const createConsumeTransport = async (peer) => {
+const createConsumeTransport = async (peer) =>{
     let consumerId = uuidv4();
     let consumerTransport = new RTCPeerConnection(configuration);
-    // console.log("clients bef")
-    // console.log(clients)
     clients.get(peer.id).consumerId = consumerId;
-    // console.log("clients aft")
-    // console.log(clients)
     consumerTransport.id = consumerId;
     consumerTransport.peer = peer;
-    console.log("conusmer transoprt poniżej...")
-    console.log(consumerTransport);
-    consumers.set(consumerId, consumerTransport);
+    consumers.set(consumerId,consumerTransport);
     consumers.get(consumerId).addTransceiver('video', { direction: "recvonly" })
     consumers.get(consumerId).addTransceiver('audio', { direction: "recvonly" })
+    
+    console.log("conusmers -> ")
+    console.log(consumers);
+
     let offer = await consumers.get(consumerId).createOffer();
     await consumers.get(consumerId).setLocalDescription(offer);
 
     consumers.get(consumerId).onicecandidate = (event) => handleConsumerIceCandidate(event, peer.id, consumerId);
 
-    consumers.get(consumerId).ontrack = (e) => {
-        handleRemoteTrack(e.streams[0], peer.id)
+    consumers.get(consumerId).ontrack = (e) =>{
+        handleRemoteTrack(e.streams[0],peer.id)
     }
 
     return consumerTransport
@@ -166,6 +167,7 @@ const createConsumeTransport = async (peer) => {
 
 const consumeOnce = async (peer) => {
     let transport = await createConsumeTransport(peer);
+    console.log("Wysyłam CONSUME")
     let payload = {
         type: 'consume',
         id: peer.id,
@@ -173,80 +175,84 @@ const consumeOnce = async (peer) => {
         sdp: await transport.localDescription
     }
     connection.send(JSON.stringify(payload))
-    console.log(" CONSUME: " + JSON.stringify(payload))
+    //console.log(" CONSUME: " + JSON.stringify(payload))
 }
 
-const handlePeers = async ({ peers }) => {
+const handlePeers = async ({peers}) =>{
+    console.log('%cHandlePeers START','color:green')
     console.log("Odebrano waiadomość: PEERS")
     console.log(peers)
-    if (peers.length > 0) {
-        for (let peer in peers) {
-            clients.set(peers[peer].id, peers[peer]);
+    if(peers.length > 0){
+        console.log("Uzytkownicy w sieci: "+peers.length)
+        for(let peer in peers){
+            clients.set(peers[peer].id,peers[peer]);
             await consumeOnce(peers[peer])
         }
     }
-    else {
-        console.log("Jesteś sam w sesji...")
+    else{
+        console.log("Obecnie jest 0 użytkowników w sesji... Jesteś tu sam...")
     }
 }
 
-const handleConsume = ({ sdp, id, consumerId }) => {
+const handleConsume = ({sdp,id,consumerId}) =>{
     const desc = new RTCSessionDescription(sdp);
     consumers.get(consumerId).setRemoteDescription(desc).catch(e => console.log(e));
 }
 
-const handleNewProducer = async ({ id, username }) => {
-    if (id === localUUID) return;
+const handleNewProducer = async ({id,username}) =>{
+    if(id=== localUUID) return;
     console.log("Nowy użytkownik w sieci!")
-    clients.set(id, { id, username });
+    clients.set(id,{id,username});
     console.log(clients)
-    await consumeOnce({ id, username });
+    await consumeOnce({id,username});
 }
 
-const removeUser = ({ id }) => {
+const removeUser = ({id}) =>{
     console.log(`Użytkownik ${id} opuszcza sieć`)
-
+  
     let cId = null
     let uN = null
-
-    try {
-        cId = { consumerId } = clients.get(id);
-    } catch (err) {
+  
+    try{
+        cId = {consumerId} = clients.get(id);
+    }catch(err){
         console.log("użytkownik bez id... klienta...")
     }
-
-    try {
-        uN = { username } = clients.get(id)
+    
+    try{
+        uN = {username} = clients.get(id)
     }
-    catch (err) {
+    catch (err){
         console.log("użytkownik bez nazwy... klienta...")
     }
-    if (uN) {
-        console.log("Jego username to : " + username)
+    if(uN){
+        console.log("Jego username to : "+ username) 
     }
-    if (cId) {
+    if(cId){
         consumers.delete(consumerId);
     }
-
+    
     clients.delete(id);
     //let out_user = document.getElementById("zdalny_"+id)
     //out_user.remove();
 }
 
-const handleTest = (message) => {
-    console.log("Test zaliczony")
+const handleTest = (message) =>{
+    console.log('%cTest Zaliczony! ','color:green')
 }
 
 
 
-const createPeer = async () => {
+const createPeer = async () =>{
     localPeer = await new RTCPeerConnection(configuration);
     localPeer.onicecandidate = (event) => handleIceCandidate(event);
     localPeer.onnegotiationneeded = () => handleNegotiation(localPeer);
     return localPeer
 }
 
-const handleIceCandidate = async ({ candidate }) => {
+
+
+const handleIceCandidate = async ({ candidate }) =>{
     if (candidate && candidate.candidate && candidate.candidate.length > 0) {
         const payload = {
             type: 'ice',
@@ -257,9 +263,10 @@ const handleIceCandidate = async ({ candidate }) => {
     }
 }
 
-const handleConsumerIceCandidate = async (e, id, consumerId) => {
+const handleConsumerIceCandidate = async (e,id,consumerId) =>{
     let { candidate } = e;
-    if (candidate && candidate.candidate && candidate.candidate.length > 0) {
+    console.log("Wysyłam consummer ICE")
+    if( candidate && candidate.candidate && candidate.candidate.length > 0){
         const payload = {
             type: 'consumer_ice',
             ice: candidate,
@@ -270,23 +277,25 @@ const handleConsumerIceCandidate = async (e, id, consumerId) => {
     }
 }
 
-const handleNegotiation = async (peer, type) => {
-    console.log('*** NEGOCJACJE ***')
+const handleNegotiation = async (peer, type) =>{
+    console.log('%c*** NEGOCJACJE ***','color:red')
     const offer = await localPeer.createOffer();
-    if (offer) console.log("utworzono oferte")
+    if(offer) console.log("-Utworzono oferte-")
     await localPeer.setLocalDescription(offer)
-    connection.send(JSON.stringify({ type: 'connect', sdp: localPeer.localDescription, uqid: localUUID, username: username }))
+    connection.send(JSON.stringify({type:'connect', sdp: localPeer.localDescription, uqid: localUUID, username:username}))
 }
 
 const subscribe = async () => {
+    console.log('%c"subscribe" started...','color:green')
     await consumeAll();
 }
 
-const consumeAll = async () => {
-    console.log("Wysyłem getPeers")
+const consumeAll = async () =>{
+    console.log('%c"consumeAll" started... Wysyłam wiadomość getPeers','color:green')
     const payload = {
         type: 'getPeers',
         uqid: localUUID
     }
+
     connection.send(JSON.stringify(payload))
 }

@@ -832,13 +832,13 @@
       <Project>{55096D1F-6EED-A738-BD3C-7B3CACE1577F}</Project>
       <Name>Unity.Services.Core.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="UnityEngine.UI.csproj">
-      <Project>{FB9E1DBE-023A-04F7-E3DB-93B8C5F221E9}</Project>
-      <Name>UnityEngine.UI</Name>
-    </ProjectReference>
     <ProjectReference Include="UnityEditor.UI.csproj">
       <Project>{75CF1974-0A96-C83E-CA0B-173148F72505}</Project>
       <Name>UnityEditor.UI</Name>
+    </ProjectReference>
+    <ProjectReference Include="UnityEngine.UI.csproj">
+      <Project>{FB9E1DBE-023A-04F7-E3DB-93B8C5F221E9}</Project>
+      <Name>UnityEngine.UI</Name>
     </ProjectReference>
     <ProjectReference Include="UnityEngine.TestRunner.csproj">
       <Project>{5187E78A-DA61-782C-8F4F-C4550A24E45F}</Project>
