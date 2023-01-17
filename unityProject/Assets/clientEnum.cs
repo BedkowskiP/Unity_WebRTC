@@ -315,8 +315,7 @@ public class clientEnum : MonoBehaviour
         Debug.Log("HandleAnswer: Starting...");
         RTCSessionDescription desc = new RTCSessionDescription();
         desc.sdp = answer.sdp.sdp;
-        localPeer.SetRemoteDescription(ref desc);
-        yield return null;
+        yield return localPeer.SetRemoteDescription(ref desc);
     }
 
     public IEnumerator HandleUserLeft(J_user_left user_left)
@@ -397,6 +396,7 @@ public class clientEnum : MonoBehaviour
 
     public IEnumerator CreateConsumerTransport(clonePeer peer)
     {
+        
         Debug.Log("CreateConsumerTransport: Starting...");
         string consumerID = UuidUnity();
         RTCPeerConnection consumerTransport = new RTCPeerConnection();
@@ -409,17 +409,18 @@ public class clientEnum : MonoBehaviour
         yield return StartCoroutine(HandleTransportNegotiation(consumers[consumerID]));
         //while (_transport == null) yield return null;
 
-        consumers[consumerID].OnIceCandidate += consumerTransport => HandleConsumerIceCandidate(consumerTransport, consumerID);
-        consumers[consumerID].OnTrack += (RTCTrackEvent e) => handleRemoteTrack(e);
+        consumers[consumerID].OnIceCandidate += consumerTransport => StartCoroutine(HandleConsumerIceCandidate(consumerTransport, consumerID));
+        //consumers[consumerID].OnTrack += (RTCTrackEvent e) => StartCoroutine(handleRemoteTrack(e));
 
         _transport = consumerTransport;
     }
-    public void handleRemoteTrack(RTCTrackEvent e)
+    public IEnumerator handleRemoteTrack(RTCTrackEvent e)
     {
         if (e.Track.Kind == TrackKind.Audio)
         {
             _receiveStream.AddTrack(e.Track);
         }
+        yield break;
     }
 
     public IEnumerator HandleTransportNegotiation(RTCPeerConnection peer)
@@ -464,7 +465,8 @@ public class clientEnum : MonoBehaviour
         string getPeers = "{\"type\":\"getPeers\",\"uqid\":\"" + localUUID + "\"}";
         Debug.Log("ConsumeAll: Sending message: " + getPeers);
         ws.Send(getPeers);
-        yield return StartCoroutine(HandleNegotiation(localPeer));
+        //yield return StartCoroutine(HandleNegotiation(localPeer));
+        yield break;
     }
 
     public IEnumerator CreatePeer()
@@ -475,9 +477,17 @@ public class clientEnum : MonoBehaviour
             new RTCIceServer { urls = new[] { "stun:stun.l.google.com:19302" } }, 
             new RTCIceServer { urls = new[] { "stun:stun.stunprotocol.org:3478" } } 
         };
+
         localPeer = new RTCPeerConnection(ref config);
-        localPeer.OnIceCandidate = (e) => HandleIceCandidate(e);
-        localPeer.OnNegotiationNeeded += () => HandleNegotiation(localPeer);
+        localPeer.OnIceCandidate = (e) => StartCoroutine(HandleIceCandidate(e));
+        localPeer.OnNegotiationNeeded += () => StartCoroutine(HandleNegotiation(localPeer));
+        localPeer.OnTrack = (e) =>
+        {
+            if (e.Track.Kind == TrackKind.Audio)
+            {
+                    _receiveStream.AddTrack(e.Track);
+            }
+        };
         yield return localPeer;
     }
 
@@ -485,7 +495,7 @@ public class clientEnum : MonoBehaviour
     {
         Debug.Log("HandleNegotiation: Creating offer...");
         var offer = peer.CreateOffer();
-        yield return null;
+        yield return offer;
         Debug.Log("HandleNegotiation: Offer created: " + offer.Desc.sdp.ToString());
         yield return StartCoroutine(OnOfferCreateSuccess(offer.Desc, peer));
 
@@ -508,7 +518,7 @@ public class clientEnum : MonoBehaviour
         ws.Send(JSON);
     }
 
-    public void HandleIceCandidate(RTCIceCandidate candidate)
+    public IEnumerator HandleIceCandidate(RTCIceCandidate candidate)
     {
         if (candidate != null && candidate.Candidate != null && candidate.Candidate.Length > 0)
         {
@@ -526,9 +536,10 @@ public class clientEnum : MonoBehaviour
             Debug.Log("HandleIceCandidate: Sending message: Sending message: " + JSON);
             ws.Send(JSON);
         }
+        yield break;
     }
 
-    private void HandleConsumerIceCandidate(RTCIceCandidate candidate, string consumentID)
+    private IEnumerator HandleConsumerIceCandidate(RTCIceCandidate candidate, string consumentID)
     {
         if (candidate != null && candidate.Candidate != null && candidate.Candidate.Length > 0)
         {
@@ -539,31 +550,38 @@ public class clientEnum : MonoBehaviour
             Debug.Log("HandleConsumerIceCandidate: Sending message: " + JSON);
             ws.Send(JSON);
         }
+        yield break;
     }
 
 
 	private void Awake()
 	{
-        _defaulMicrophone = Microphone.devices[0];
-        Microphone.GetDeviceCaps(_defaulMicrophone, out int minFreq, out int maxFreq);
-        m_clipInput = Microphone.Start(_defaulMicrophone, true, 1, 48000);
-
-        _audioSourceInput.loop = true;
-        _audioSourceInput.clip = m_clipInput;
-        _audioSourceInput.Play();
         
-        _sendStream = new MediaStream();
-        _receiveStream = new MediaStream();
-
-        _receiveStream.OnAddTrack += OnAddTrack;
-
-        track = new AudioStreamTrack(_audioSourceInput);
-        track.Loopback = true;
     }
 
 	void Start()
     {
+        _defaulMicrophone = Microphone.devices[0];
+        Microphone.GetDeviceCaps(_defaulMicrophone, out int minFreq, out int maxFreq);
+        m_clipInput = Microphone.Start(_defaulMicrophone, true, 1, 48000);
+
+        _audioSourceInput.clip = m_clipInput;
+
+        _sendStream = new MediaStream();
+
+        track = new AudioStreamTrack(_audioSourceInput);
+        track.Loopback = true;
+
+        _receiveStream = new MediaStream();
+
+        _receiveStream.OnAddTrack += OnAddTrack;
+
         Init();
+    }
+
+    private void OnAudioFilterRead(float[] data, int channels)
+    {
+        track.SetData(data, channels, 48000);
     }
 
     void OnAddTrack(MediaStreamTrackEvent e)
@@ -585,7 +603,7 @@ public class clientEnum : MonoBehaviour
             Debug.Log("Connection: Connection started.");
         };
 
-        ws.OnMessage += async (sender, e) =>
+        ws.OnMessage += (sender, e) =>
         {
             Debug.Log("Connection: Recevied message: "+ e.Data);
             threadPumpList.Add(HandleMessage(e.Data));
