@@ -56,21 +56,21 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\MediaStreamTrackGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\InboundRTPStreamGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\WebRTCStats.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\OutboundRTPStreamGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\PeerListView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\BuildProcessor.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\GraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\TransportGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\DataChannelGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\CandidatePairGraphView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\PeerStatsView.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\MediaSourceGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\MediaStreamTrackGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\InboundRTPStreamGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\WebRTCStats.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\OutboundRTPStreamGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\PeerListView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\BuildProcessor.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\GraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\TransportGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\DataChannelGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\CandidatePairGraphView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\PeerStatsView.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\MediaSourceGraphView.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Editor\Unity.WebRTC.Editor.asmdef" />
+    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Editor\Unity.WebRTC.Editor.asmdef" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -56,37 +56,37 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\VideoStreamTrack.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCPeerConnection.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\WeakReferenceTable.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\AssemblyInfo.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCErrorException.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\AudioCustomFilter.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCRtpTransceiver.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCRtpReceiver.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTPParameters.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\Context.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\CreateSessionDescriptionObserver.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCStatsCollectorCallback.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RenderTextureDepth.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\WebRTC.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\WebRTC.AsyncOperation.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\AudioStreamTrack.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\Internal\IntPtrExtension.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCDataChannel.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCRtpSender.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\MediaStream.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RefCountedObject.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\SetSessionDescriptionObserver.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCIceCandidate.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\Internal\ExecutableUnitySynchronizationContext.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\Internal\Marshalling.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\MediaStreamTrack.cs" />
-    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Scripts\RTCStats.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\VideoStreamTrack.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCPeerConnection.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\WeakReferenceTable.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\AssemblyInfo.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCErrorException.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\AudioCustomFilter.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCRtpTransceiver.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCRtpReceiver.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTPParameters.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\Context.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\CreateSessionDescriptionObserver.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCStatsCollectorCallback.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RenderTextureDepth.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\WebRTC.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\WebRTC.AsyncOperation.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\AudioStreamTrack.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\Internal\IntPtrExtension.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCDataChannel.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCRtpSender.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\MediaStream.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RefCountedObject.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\SetSessionDescriptionObserver.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCIceCandidate.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\Internal\ExecutableUnitySynchronizationContext.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\Internal\Marshalling.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\MediaStreamTrack.cs" />
+    <Compile Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Scripts\RTCStats.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Plugins\x86_64\webrtc.dll" />
-    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.3\Runtime\Unity.WebRTC.Runtime.asmdef" />
+    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Plugins\x86_64\webrtc.dll" />
+    <None Include="Library\PackageCache\com.unity.webrtc@3.0.0-pre.4\Runtime\Unity.WebRTC.Runtime.asmdef" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

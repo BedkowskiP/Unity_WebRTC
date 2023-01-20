@@ -6,7 +6,7 @@ const express = require('express');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
-const { Console } = require("console");
+
 
 const app = express();
 
@@ -69,6 +69,15 @@ wss.on('connection', (ws) =>{
        peers.delete(ws.id);
        consumers.delete(ws.id)
 
+
+       console.log("User left... " + ws.id)
+       console.log("users in the session:")
+
+       function logUsers(value,key,map){
+        console.log(`[${key}] = ${value}`)
+        }
+        peers.forEach(logUsers);
+
        wss.broadcast(JSON.stringify({
         type:'user_left',
         id: ws.id
@@ -87,7 +96,15 @@ wss.on('connection', (ws) =>{
             switch(message.type){
 
                 case 'user_connected_via_ws':
-                    console.log('New user on ws connection: '+message.username)
+                    console.log('New user on ws connection, user_type: '+message.user_type)
+                    let tempUsername = usernameGenerator(message.user_type);
+
+                    const payloadWithUsername = {
+                        type: 'baptism',
+                        username: tempUsername,
+                    }
+                    console.log("Wysyłam username")
+                    ws.send(JSON.stringify(payloadWithUsername))
                     break;
                 case 'connect':
                     console.log(message)
@@ -166,8 +183,8 @@ wss.on('connection', (ws) =>{
                     break;
                     case 'ice':
                         console.log(message);
-                        ////console.log("ICE")
-                        ////console.log(JSON.stringify(message))
+                        console.log("ICE")
+                        console.log(JSON.stringify(message))
                         let user = peers.get(message.uqid);
                         if(user.peer){
                             user.peer.addIceCandidate(new webrtc.RTCIceCandidate(message.ice).catch(e => console.log(e)));
@@ -176,10 +193,13 @@ wss.on('connection', (ws) =>{
 
                     case 'consumer_ice':
                         console.log("consumer_ice!")
-                        let (ice,uqid,consumerId) = message;
-                        console.log(ice)
-                        console.log(uqid)
-                        console.log(consumerId)
+                        console.log(message);
+                        let user2 = peers.get(message.uqid);
+                        if(user2.peer){
+                            user2.peer.addIceCandidate(new webrtc.RTCIceCandidate(message.ice).catch(e => console.log(e)));
+                        }
+                       
+                    
                         break;
                     case 'create':
                         break;
@@ -192,7 +212,10 @@ wss.on('connection', (ws) =>{
 
         }catch(e){
             message = msg.data
-            console.log(msg.data)
+            if(msg.data.type != undefined){
+                console.log(msg.data)
+            }
+            
         }
         
     }
@@ -229,10 +252,7 @@ const handleTrackEvent = async (e,peer,ws) => {
 
 const createPeer = () =>{
     let peer = new webrtc.RTCPeerConnection({
-        iceServers: [
-            { 'urls': 'stun:stun.stunprotocol.org:3478' },
-            { 'urls': 'stun:stun.l.google.com:19302' },
-        ]
+        iceServers: [{ urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19305" ] }]
     });
 
     return peer;
@@ -258,6 +278,25 @@ const generalinformation = (ws) =>{
         }
     }
     ws.send(JSON.stringify(obj));
+}
+
+const usernameGenerator = (user_type) =>{
+
+    switch(user_type){
+        case 'B':
+            return 'U-xxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            break;
+        case 'UNI':
+            return 'UNI-xxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            break;
+    }
+    
 }
 
 const createRoom = () => {

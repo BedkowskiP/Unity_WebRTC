@@ -5,10 +5,6 @@ using WebSocketSharp;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections;
-using System.Threading.Tasks;
-using Task = System.Threading.Tasks.Task;
-using System.Security.Cryptography;
-using System.Diagnostics.Contracts;
 
 public class clientEnum : MonoBehaviour
 {
@@ -18,6 +14,7 @@ public class clientEnum : MonoBehaviour
     private string username = null;
     private string localUUID = null;
     private RTCPeerConnection localPeer;
+    private RTCRtpSender sender;
 
     private IDictionary<string, clonePeer> clients = new Dictionary<string, clonePeer>();
     private IDictionary<string, RTCPeerConnection> consumers = new Dictionary<string, RTCPeerConnection>();
@@ -89,11 +86,19 @@ public class clientEnum : MonoBehaviour
 
 
     #region JSON_Classes
+
+    public class J_baptist
+    {
+        public string type { get; set; }
+        public string username { get; set; }
+    }
+
     public class J_Witaj
     {
         public string type { get; set; }
         public string id { get; set; }
     }
+
     public class J_Peers
     {
         public string type { get; set; }
@@ -207,75 +212,69 @@ public class clientEnum : MonoBehaviour
             return "{id = " + this.id + ", username = " + this.username + ", consumerId = " + this.consumerId + "}";
         }
     }
-
-    private string UuidUnity()
-    {
-        const string chars = "abcdefghijklmnopqrstuvwxyz1234567890";
-        string uid = "UNI-";
-        for (int i = 0; i < 7; i++)
-        {
-            System.Random rand = new System.Random();
-            uid += chars[rand.Next(0, chars.Length)];
-        }
-        return uid;
-    }
-
-
     private IEnumerator HandleMessage(string message)
     {
         Debug.Log("HandleMessage: Start...");
         //try
         //{
         if (message.Contains("\"type\":\"witaj\"") == true)
-            {
-                Debug.Log("HandleMessage: Wiadomosc zawierala, WITAJ!");
-                J_Witaj witaj = JsonConvert.DeserializeObject<J_Witaj>(message);
-                //Debug.Log("HandleMessage: Recevied message" + message);
-                Debug.Log("HandleMessage: Your ID: " + witaj.id);
-                localUUID = witaj.id;
-                yield return StartCoroutine(Connect());
-            }
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, WITAJ!");
+            J_Witaj witaj = JsonConvert.DeserializeObject<J_Witaj>(message);
+            //Debug.Log("HandleMessage: Recevied message" + message);
+            Debug.Log("HandleMessage: Your ID: " + witaj.id);
+            localUUID = witaj.id;
+            yield return StartCoroutine(Connect());
+        }
 
-            if (message.Contains("\"type\":\"peers\"") == true)
-            {
-                Debug.Log("HandleMessage: Wiadomosc zawierala, peers!");
-                J_Peers peers_msg = JsonConvert.DeserializeObject<J_Peers>(message);
-                //Debug.Log("HandleMessage: Recevied message: " + message);
-                yield return StartCoroutine(HandlePeers(peers_msg));
-            }
+        if (message.Contains("\"type\":\"baptism\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, Baptism!");
+            J_baptist baptism = JsonConvert.DeserializeObject<J_baptist > (message);
+            Debug.Log("HandleMessage: Your Username:" + baptism.username);
+            username = baptism.username;
+        }
 
-            if (message.Contains("\"type\":\"newProducer\"") == true)
-            {
-                Debug.Log("HandleMessage: Wiadomosc zawierala, newProducer!");
-                J_Producer producer_msg = JsonConvert.DeserializeObject<J_Producer>(message);
+        if (message.Contains("\"type\":\"peers\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, peers!");
+            J_Peers peers_msg = JsonConvert.DeserializeObject<J_Peers>(message);
+            //Debug.Log("HandleMessage: Recevied message: " + message);
+            yield return StartCoroutine(HandlePeers(peers_msg));
+        }
+
+        if (message.Contains("\"type\":\"newProducer\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, newProducer!");
+            J_Producer producer_msg = JsonConvert.DeserializeObject<J_Producer>(message);
+            //Debug.Log("HandleMessage: Recevied message " + message);
+            yield return StartCoroutine(HandleProducer(producer_msg));
+        }
+
+        if (message.Contains("\"type\":\"answer\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, answer!");
+            J_Answer answer_msg = JsonConvert.DeserializeObject<J_Answer>(message);
+            //Debug.Log("HandleMessage: Recevied message " + message);
+            yield return StartCoroutine(HandleAnswer(answer_msg));
+        }
+
+        if (message.Contains("\"type\":\"user_left\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, user_left!");
+            J_user_left user_left_msg = JsonConvert.DeserializeObject<J_user_left>(message);
                 //Debug.Log("HandleMessage: Recevied message " + message);
-                yield return StartCoroutine(HandleProducer(producer_msg));
-            }
+            yield return StartCoroutine(HandleUserLeft(user_left_msg));
+        }
 
-            if (message.Contains("\"type\":\"answer\"") == true)
-            {
+        if (message.Contains("\"type\":\"consume\"") == true)
+        {
+            Debug.Log("HandleMessage: Wiadomosc zawierala, consume!");
+            J_Consume consume_msg = JsonConvert.DeserializeObject<J_Consume>(message);
+            //Debug.Log("HandleMessage: Recevied message " + message);
+            yield return StartCoroutine(HandleConsume(consume_msg));
+        }
 
-                Debug.Log("HandleMessage: Wiadomosc zawierala, answer!");
-                J_Answer answer_msg = JsonConvert.DeserializeObject<J_Answer>(message);
-                //Debug.Log("HandleMessage: Recevied message " + message);
-                yield return StartCoroutine(HandleAnswer(answer_msg));
-            }
-
-            if (message.Contains("\"type\":\"user_left\"") == true)
-            {
-                Debug.Log("HandleMessage: Wiadomosc zawierala, user_left!");
-                J_user_left user_left_msg = JsonConvert.DeserializeObject<J_user_left>(message);
-                //Debug.Log("HandleMessage: Recevied message " + message);
-                yield return StartCoroutine(HandleUserLeft(user_left_msg));
-            }
-
-            if (message.Contains("\"type\":\"consume\"") == true)
-            {
-                Debug.Log("HandleMessage: Wiadomosc zawierala, consume!");
-                J_Consume consume_msg = JsonConvert.DeserializeObject<J_Consume>(message);
-                //Debug.Log("HandleMessage: Recevied message " + message);
-                yield return StartCoroutine(HandleConsume(consume_msg));
-            }
         yield break;
     }
 
@@ -306,7 +305,11 @@ public class clientEnum : MonoBehaviour
         Debug.Log("HandleProducer: New user in session.");
         clonePeer peer = new clonePeer(producer.id, producer.username);
         clients.Add(producer.id, peer);
-        Debug.Log("HandleProducer: List of users: " + clients);
+        Debug.Log("HandleProducer: List of users: ");
+        foreach (var c in clients)
+        {
+            Debug.Log(c.Value.username + " -> " + c.Key);
+        }
         yield return StartCoroutine(ConsumeOnce(peer));
     }
 
@@ -320,12 +323,13 @@ public class clientEnum : MonoBehaviour
 
     public IEnumerator HandleUserLeft(J_user_left user_left)
     {
-        Debug.Log($"HandleUserLeft: User {user_left.id} left the session");
+        
         string cId = null;
 
         try
         {
             cId = clients[user_left.id].consumerId;
+            Debug.Log($"HandleUserLeft: User {cId} left the session");
         }
         catch
         {
@@ -335,6 +339,7 @@ public class clientEnum : MonoBehaviour
         try
         {
             var uN = clients[user_left.id].username;
+            Debug.Log($"HandleUserLeft: His username: {uN}.");
         }
         catch
         {
@@ -343,11 +348,36 @@ public class clientEnum : MonoBehaviour
 
         if (cId != null)
         {
-            clients.Remove(cId);
+            yield return StartCoroutine(RemoveConsumer(cId));
         }
+
+        clients.Remove(user_left.id);
 
         yield break;
     }
+
+    public IEnumerator RemoveConsumer(string consumerId)
+	{
+        foreach(var transceiver in consumers[consumerId].GetTransceivers())
+		{
+            if (transceiver.Receiver.Track.Id == consumerId && transceiver.Direction != RTCRtpTransceiverDirection.Stopped)
+			{
+                transceiver.Stop();
+                break;
+			}
+        }
+        foreach (var sender in consumers[consumerId].GetSenders())
+        {
+            sender.Dispose();
+        }
+
+        foreach (var receiver in consumers[consumerId].GetReceivers())
+        {
+            receiver.Dispose();
+        }
+
+        yield break;
+	}
 
     public IEnumerator HandleConsume(J_Consume consume)
     {
@@ -398,7 +428,7 @@ public class clientEnum : MonoBehaviour
     {
         
         Debug.Log("CreateConsumerTransport: Starting...");
-        string consumerID = UuidUnity();
+        string consumerID = peer.id;
         RTCPeerConnection consumerTransport = new RTCPeerConnection();
         clients[peer.id].consumerId = consumerID;
 
@@ -407,10 +437,9 @@ public class clientEnum : MonoBehaviour
         consumers[consumerID].AddTransceiver(TrackKind.Audio).Direction = RTCRtpTransceiverDirection.RecvOnly;
 
         yield return StartCoroutine(HandleTransportNegotiation(consumers[consumerID]));
-        //while (_transport == null) yield return null;
 
         consumers[consumerID].OnIceCandidate += consumerTransport => StartCoroutine(HandleConsumerIceCandidate(consumerTransport, consumerID));
-        //consumers[consumerID].OnTrack += (RTCTrackEvent e) => StartCoroutine(handleRemoteTrack(e));
+        consumers[consumerID].OnTrack += (RTCTrackEvent e) => StartCoroutine(handleRemoteTrack(e));
 
         _transport = consumerTransport;
     }
@@ -427,7 +456,8 @@ public class clientEnum : MonoBehaviour
     {
         Debug.Log("HandleTransportNegotiation: Creating offer...");
         var offer = peer.CreateOffer();
-        yield return null;
+        while(offer.Desc.sdp == null)
+            yield return null;
 
         Debug.Log("HandleTransportNegotiation: Offer created: " + offer.Desc.sdp.ToString());
         yield return StartCoroutine(OnTransportOfferCreateSuccess(offer.Desc, peer));
@@ -437,7 +467,6 @@ public class clientEnum : MonoBehaviour
     public IEnumerator OnTransportOfferCreateSuccess(RTCSessionDescription offer, RTCPeerConnection peer)
     {
         Debug.Log("OnTransportOfferCreateSuccess: Setting consumer description...");
-        //Debug.Log("OnTransportOfferCreateSuccess: Offer: " + offer.sdp.ToString());
         var desc = peer.SetLocalDescription(ref offer);
         yield return null;
         Debug.Log("OnTransportOfferCreateSuccess: Consumer description set: " + peer.LocalDescription.sdp.ToString());
@@ -448,48 +477,39 @@ public class clientEnum : MonoBehaviour
     {
         Debug.Log("Connect: Starting P2P connection.");
         yield return StartCoroutine(CreatePeer());
-        localPeer.AddTrack(track, _sendStream);
+        sender = localPeer.AddTrack(track, _sendStream);
         yield return StartCoroutine(Subscribe());
     }
-
-    public IEnumerator Subscribe()
-    {
-        Debug.Log("Subscribe: Starting...");
-        StartCoroutine(ConsumeAll());
-        yield break;
-    }
-
-    public IEnumerator ConsumeAll()
-    {
-        Debug.Log("ConsumeAll: Sending getPeers");
-        string getPeers = "{\"type\":\"getPeers\",\"uqid\":\"" + localUUID + "\"}";
-        Debug.Log("ConsumeAll: Sending message: " + getPeers);
-        ws.Send(getPeers);
-        //yield return StartCoroutine(HandleNegotiation(localPeer));
-        yield break;
-    }
-
     public IEnumerator CreatePeer()
     {
         Debug.Log("CreatePeer: Creating peer...");
         var config = new RTCConfiguration();
-		config.iceServers = new[]{ 
-            new RTCIceServer { urls = new[] { "stun:stun.l.google.com:19302" } }, 
-            new RTCIceServer { urls = new[] { "stun:stun.stunprotocol.org:3478" } } 
+        config.iceServers = new[]{
+            new RTCIceServer { urls = new[] { "stun:stun.l.google.com:19302" } },
+            new RTCIceServer { urls = new[] { "stun:stun.stunprotocol.org:3478" } }
         };
 
         localPeer = new RTCPeerConnection(ref config);
         localPeer.OnIceCandidate = (e) => StartCoroutine(HandleIceCandidate(e));
         localPeer.OnNegotiationNeeded += () => StartCoroutine(HandleNegotiation(localPeer));
-        localPeer.OnTrack = (e) =>
-        {
-            if (e.Track.Kind == TrackKind.Audio)
-            {
-                    _receiveStream.AddTrack(e.Track);
-            }
-        };
+
         yield return localPeer;
     }
+
+    public IEnumerator Subscribe()
+    {
+        Debug.Log("Subscribe: Starting");
+        yield return StartCoroutine(ConsumeAll());
+        yield break;
+    }
+    private IEnumerator ConsumeAll()
+	{
+        Debug.Log("ConsumeAll: Sending getPeers");
+        string getPeers = "{\"type\":\"getPeers\",\"uqid\":\"" + localUUID + "\"}";
+        Debug.Log("ConsumeAll: Sending message: " + getPeers);
+        ws.Send(getPeers);
+        yield break;
+	}
 
     public IEnumerator HandleNegotiation(RTCPeerConnection peer)
     {
@@ -498,7 +518,6 @@ public class clientEnum : MonoBehaviour
         yield return offer;
         Debug.Log("HandleNegotiation: Offer created: " + offer.Desc.sdp.ToString());
         yield return StartCoroutine(OnOfferCreateSuccess(offer.Desc, peer));
-
     }
 
     public IEnumerator OnOfferCreateSuccess(RTCSessionDescription offer, RTCPeerConnection peer)
@@ -553,54 +572,41 @@ public class clientEnum : MonoBehaviour
         yield break;
     }
 
-
-	private void Awake()
-	{
-        
-    }
-
 	void Start()
     {
         _defaulMicrophone = Microphone.devices[0];
         Microphone.GetDeviceCaps(_defaulMicrophone, out int minFreq, out int maxFreq);
-        m_clipInput = Microphone.Start(_defaulMicrophone, true, 1, 48000);
-
-        _audioSourceInput.clip = m_clipInput;
+        m_clipInput = Microphone.Start(_defaulMicrophone, true, 10, 44100);
 
         _sendStream = new MediaStream();
+        _audioSourceInput.clip = m_clipInput;
+        _audioSourceInput.Play();
 
         track = new AudioStreamTrack(_audioSourceInput);
-        track.Loopback = true;
 
         _receiveStream = new MediaStream();
-
         _receiveStream.OnAddTrack += OnAddTrack;
 
         Init();
     }
 
-    private void OnAudioFilterRead(float[] data, int channels)
-    {
-        track.SetData(data, channels, 48000);
-    }
-
-    void OnAddTrack(MediaStreamTrackEvent e)
+    private void OnAddTrack(MediaStreamTrackEvent e)
 	{
         var track = e.Track as AudioStreamTrack;
         _audioSourceOutput.SetTrack(track);
-        _audioSourceOutput.loop = true;
         _audioSourceOutput.Play();
     }
 
     private void Init()
     {
         Debug.Log("Init: Starting...");
-        username = UuidUnity();
         ws = new WebSocket(serverURL);
 
         ws.OnOpen += (sender, e) =>
         {
             Debug.Log("Connection: Connection started.");
+            string JSON = "{\"type\":\"user_connected_via_ws\",\"user_type\":\"UNI\"}";
+            ws.Send(JSON);
         };
 
         ws.OnMessage += (sender, e) =>
@@ -625,9 +631,8 @@ public class clientEnum : MonoBehaviour
 		{
             StartCoroutine(threadPumpList[0]);
             threadPumpList.RemoveAt(0);
-		}
+		} 
+
 	}
 
 }
-
-
